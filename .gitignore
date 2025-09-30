@@ -1,0 +1,90 @@
+# ======================================
+# Archivos y carpetas de Python
+# ======================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+*.manifest
+*.spec
+
+# Entornos virtuales
+.env
+.venv/
+env/
+venv/
+
+# Archivos de configuración temporales
+*.log
+*.pot
+*.pyc
+
+# ======================================
+# Archivos del proyecto
+# ======================================
+# Ignorar la carpeta con los modelos
+app/clasificador/modelo/
+
+# Archivos de configuración sensibles
+.env
+.env.* 
+!env.example  # mantener plantilla de ejemplo
+
+# ======================================
+# Docker
+# ======================================
+docker-compose.override.yml
+.docker/
+
+# ======================================
+# Node / Frontend
+# ======================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build / coverage
+dist/
+build/
+coverage/
+*.lcov
+
+# ======================================
+# VSCode / IDEs
+# ======================================
+.vscode/
+*.code-workspace
+.idea/
+*.iml
+
+# ======================================
+# SO (Windows / macOS / Linux)
+# ======================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.nfs*
+
+# ======================================
+# Otros
+# ======================================
+# Archivos temporales
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig

@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  classifier-api-dev:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-classifier-dev-key}
+      - FLASK_ENV=development
+      - FLASK_DEBUG=True
+      - MODEL_PATH=${MODEL_PATH:-./app/clasificador/modelo}
+      - MAX_TEXT_LENGTH=${MAX_TEXT_LENGTH:-512}
+    volumes:
+      - .:/app
+    command: python app.py
+    restart: unless-stopped
+    networks:
+      - classifier-network
+
+networks:
+  classifier-network:
+    driver: bridge

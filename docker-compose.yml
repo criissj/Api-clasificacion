@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  classifier-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      # Flask Configuration
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-classifier-api-key}
+      - FLASK_ENV=production
+      
+      # Classifier Configuration
+      - MODEL_PATH=${MODEL_PATH:-./app/clasificador/modelo}
+      - MAX_TEXT_LENGTH=${MAX_TEXT_LENGTH:-512}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - classifier-network
+
+networks:
+  classifier-network:
+    driver: bridge
