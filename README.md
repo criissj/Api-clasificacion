@@ -779,6 +779,6 @@ Este proyecto está bajo la **Licencia MIT**.
 
 **🚀 ¡API lista para clasificar texto con IA! 🤖**
 
-Hecho con ❤️ usando Flask, PyTorch y Transformers
+Hecho con ❤️ para la comunidad UTEM
 
 </div>
