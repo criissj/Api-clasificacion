@@ -21,6 +21,8 @@ venv/
 *.log
 *.pot
 *.pyc
+gunicorn.log
+gunicorn.pid
 
 # ======================================
 # Archivos del proyecto
@@ -78,6 +80,12 @@ $RECYCLE.BIN/
 # Linux
 *~
 .nfs*
+
+# ======================================
+# Gunicorn
+# ======================================
+gunicorn*.log
+gunicorn*.pid
 
 # ======================================
 # Otros

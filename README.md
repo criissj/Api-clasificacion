@@ -81,7 +81,9 @@ Api-clasificacion/
 ├── 📂 data/                         # Datos de entrenamiento (crear)
 │   └── consultas_modelo_ia.xlsx    # Dataset
 │
-├── 📄 app.py                        # Punto de entrada
+├── 📄 app.py                        # Punto de entrada (desarrollo)
+├── 📄 wsgi.py                       # Punto de entrada WSGI (producción)
+├── 📄 gunicorn.conf.py              # Configuración de Gunicorn
 ├── 📄 requirements.txt              # Dependencias Python
 ├── 📄 docker-compose.yml            # Orquestación producción
 ├── 📄 docker-compose.dev.yml        # Orquestación desarrollo
@@ -105,6 +107,7 @@ Api-clasificacion/
 ```
 flask>=2.3.0              # Framework web
 flask-cors>=4.0.0         # CORS para API
+gunicorn>=21.2.0          # Servidor WSGI para producción
 torch>=2.0.0              # PyTorch para ML
 transformers>=4.30.0      # Modelos Hugging Face
 tokenizers>=0.13.0        # Tokenización rápida
@@ -229,15 +232,33 @@ Después del entrenamiento tendrás:
 
 ## 🚀 Uso de la API
 
-### Iniciar Servidor Local
+### Inicio Rápido
+
+**Opción 1: Script de inicio (Recomendado)**
+
+```bash
+# Linux/macOS
+chmod +x start.sh
+./start.sh prod          # Producción (Gunicorn)
+./start.sh dev           # Desarrollo (Flask)
+
+# Windows
+start.bat prod           # Producción (Gunicorn)
+start.bat dev            # Desarrollo (Flask)
+```
+
+**Opción 2: Manual**
 
 ```bash
 # Activar entorno virtual
 source venv/bin/activate  # Linux/macOS
 # venv\Scripts\activate   # Windows
 
-# Ejecutar API
+# Desarrollo (Flask con debug)
 python app.py
+
+# Producción (Gunicorn)
+gunicorn -c gunicorn.conf.py wsgi:app
 ```
 
 La API estará disponible en: **http://localhost:5000**
@@ -453,15 +474,27 @@ docker run -d \
 pip install gunicorn
 ```
 
-**Ejecutar:**
+**Ejecutar con configuración básica:**
 ```bash
 gunicorn --bind 0.0.0.0:5000 \
          --workers 4 \
          --timeout 120 \
          --access-logfile - \
          --error-logfile - \
-         app:app
+         wsgi:app
 ```
+
+**Ejecutar con archivo de configuración:**
+```bash
+gunicorn -c gunicorn.conf.py wsgi:app
+```
+
+**Configuración recomendada para producción:**
+- **Workers:** `(2 x CPU cores) + 1`
+- **Timeout:** `120` segundos (para modelos ML)
+- **Worker Class:** `sync` (por defecto)
+- **Max Requests:** `1000` (recicla workers)
+- **Keepalive:** `5` segundos
 
 ---
 
@@ -476,6 +509,8 @@ gunicorn --bind 0.0.0.0:5000 \
 | `FLASK_DEBUG` | Modo debug | `True` |
 | `MODEL_PATH` | Ruta del modelo | `./app/clasificador/modelo` |
 | `MAX_TEXT_LENGTH` | Longitud máxima de texto | `512` |
+| `GUNICORN_WORKERS` | Número de workers Gunicorn | `4` |
+| `GUNICORN_TIMEOUT` | Timeout de Gunicorn (segundos) | `120` |
 
 ### Estructura del Modelo
 
@@ -677,6 +712,89 @@ pytest tests/ -v
 - Logging avanzado
 - Monitoreo con Prometheus
 - SSL/TLS en producción
+
+---
+
+## ⚙️ Gunicorn - Servidor de Producción
+
+### 🚀 ¿Por qué Gunicorn?
+
+Gunicorn (Green Unicorn) es un servidor WSGI HTTP para Python que:
+- ✅ **Maneja múltiples workers** para procesar solicitudes concurrentes
+- ✅ **Es más rápido** que el servidor de desarrollo de Flask
+- ✅ **Es más estable** y robusto para producción
+- ✅ **Soporta alta carga** de tráfico
+- ✅ **Recicla workers** automáticamente para evitar memory leaks
+
+### 📝 Configuración
+
+El proyecto incluye `gunicorn.conf.py` con configuración optimizada:
+
+```python
+# Workers dinámicos según CPU
+workers = (2 x CPU cores) + 1
+
+# Timeout extendido para modelos ML
+timeout = 120
+
+# Reciclaje de workers
+max_requests = 1000
+max_requests_jitter = 50
+```
+
+### 📊 Diferencias: Desarrollo vs Producción
+
+| Aspecto | Desarrollo | Producción |
+|---------|------------|-------------|
+| **Servidor** | Flask dev server | Gunicorn |
+| **Workers** | 1 (single-threaded) | 4+ (multi-process) |
+| **Debug** | Activado | Desactivado |
+| **Hot Reload** | Sí | No |
+| **Performance** | Baja | Alta |
+| **Comando** | `python app.py` | `gunicorn wsgi:app` |
+| **Dockerfile** | `Dockerfile.dev` | `Dockerfile` |
+
+### 🛠️ Comandos Útiles
+
+**Iniciar con configuración personalizada:**
+```bash
+gunicorn -c gunicorn.conf.py wsgi:app
+```
+
+**Iniciar con opciones específicas:**
+```bash
+gunicorn wsgi:app \
+  --bind 0.0.0.0:5000 \
+  --workers 4 \
+  --worker-class sync \
+  --timeout 120 \
+  --log-level info
+```
+
+**Verificar configuración:**
+```bash
+gunicorn --check-config -c gunicorn.conf.py wsgi:app
+```
+
+**Modo daemon (background):**
+```bash
+gunicorn -c gunicorn.conf.py wsgi:app --daemon
+```
+
+### 📊 Monitoreo
+
+**Ver logs en tiempo real:**
+```bash
+# Con Docker
+docker-compose logs -f classifier-api
+
+# Local
+tail -f gunicorn.log
+```
+
+**Métricas de workers:**
+- Gunicorn registra automáticamente requests, tiempos de respuesta y errores
+- Los logs incluyen formato detallado con timestamps
 
 ---
 
